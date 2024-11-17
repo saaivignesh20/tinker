@@ -1,29 +1,27 @@
-# import libraries
-import os
 import pytesseract
 import io
-from pypdf import PdfReader
-from pdf2image import convert_from_path
 import pandas as pd
 from PIL import Image
+from pypdf import PdfReader
 
 
 def read_from_pdf(path):
-    '''Reads a PDF file from path and returns as text content.'''
+    '''Reads a PDF file from path and returns the text content.'''
     reader = PdfReader(path)
     text = ""
     for idx in range(len(reader.pages)):
-        p = reader.pages[idx]
-        text += p.extract_text()
-        images = []
-        for img in p.images:
-            image = Image.open(io.BytesIO(img.data))
-            text += read_from_image(None, image)
+        page = reader.pages[idx]
+        text += page.extract_text()
+        # Process images in the PDF if any
+        if page.images:
+            for img in page.images:
+                image = Image.open(io.BytesIO(img.data))
+                text += read_from_image(image=image)
     return text
 
 
 def read_from_image(path=None, image=None):
-    '''Reads an image file from path/image and returns as text content.'''
+    '''Reads an image file from path or image and returns the text content.'''
     if path:
         return pytesseract.image_to_string(Image.open(path))
     if image:
@@ -31,10 +29,6 @@ def read_from_image(path=None, image=None):
 
 
 def read_from_excel(path):
-    '''Reads an excel file from path and returns as text content.'''
+    '''Reads an Excel file from path and returns the content as text.'''
     df = pd.read_excel(path)
     return df.to_string()
-
-
-dir = os.path.dirname(os.path.dirname(__file__))
-print(read_from_pdf(f"{dir}/input/pdf_test.pdf"))
