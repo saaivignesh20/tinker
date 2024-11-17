@@ -34,7 +34,8 @@ if "messages" not in st.session_state:
 if "suggested_questions" not in st.session_state:
     st.session_state.suggested_questions = ["What is the summary of the document?", "What are the key points?", "Explain the introduction in detail."]
 
-st.title("LangChain PDF Chatbot")
+st.title("OverTinker")
+st.markdown("<div class='custom-markdown'><h1>Curiosity Meets Clarity</h1></div>", unsafe_allow_html=True)
 
 # File uploader
 f = st.file_uploader("Upload a PDF", type=(["pdf"]))
@@ -47,7 +48,7 @@ if f is not None:
         "Can you summarize the key points?",
         "What is the tone of the document?",
     ]
-
+xqxxx
 # Display chat history
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
@@ -69,7 +70,7 @@ if prompt := st.chat_input("Ask your question here..."):
     # Update suggested questions based on new chat history
     st.session_state.suggested_questions = generate_suggested_questions(st.session_state.messages)
 
-# Suggested question buttons
+# Suggested question buttons (persistent, they never disappear)
 st.subheader("Suggested Questions")
 cols = st.columns(3)
 for idx, question in enumerate(st.session_state.suggested_questions):
@@ -84,5 +85,5 @@ for idx, question in enumerate(st.session_state.suggested_questions):
             st.markdown(response)
         st.session_state.messages.append({"role": "assistant", "content": response})
 
-        # Update suggestions again
+        # Update suggestions again (the buttons remain persistent)
         st.session_state.suggested_questions = generate_suggested_questions(st.session_state.messages)
