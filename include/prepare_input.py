@@ -23,7 +23,7 @@ def read_from_pdf(path):
 
 
 def read_from_image(path=None, image=None):
-    '''Reads an image file from path and returns as text content.'''
+    '''Reads an image file from path/image and returns as text content.'''
     if path:
         return pytesseract.image_to_string(Image.open(path))
     if image:
