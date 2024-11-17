@@ -24,6 +24,7 @@ class ConversationModel:
     def __init__(self):
         self.memory = ConversationMemory()
         self.model = "gemma2-9b-it"  # Replace with the model you want to use
+        # self.model = "llama-3.1-70b-versatile"
         self.messages = [self.get_system_message()]
 
     def get_system_message(self):
