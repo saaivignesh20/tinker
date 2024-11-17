@@ -48,7 +48,7 @@ if f is not None:
         "Can you summarize the key points?",
         "What is the tone of the document?",
     ]
-xqxxx
+
 # Display chat history
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
