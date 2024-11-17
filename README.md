@@ -6,4 +6,4 @@ Document Summarization and Q&amp;A platform. A hackathon project!
 
 Install requirements by:
 
-    $ pip install -r /path/to/requirements.txt
+    $ pip install -r requirements.txt
