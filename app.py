@@ -50,14 +50,26 @@ if uploaded_file:
 
 
 # Text input for follow-up question
-question = st.text_input("Your Question", "")
+# question = st.text_input("Your Question", "")
+
+if 'selected_question' in st.session_state:
+    # Update the question in the text input field
+    question = st.text_input(
+        "Your Question", st.session_state.selected_question)
+else:
+    # Default to empty if no question is selected
+    question = st.text_input("Your Question", "")
+
 
 # Handle button click for submitting a question
-if st.button("Submit"):
-    if not question.strip() and not uploaded_file:
+if st.button("Submit") or getattr(st.session_state, "selected_question", "").strip():
+    if not question.strip() or not getattr(st.session_state, "selected_question", "").strip() and not uploaded_file:
         st.error("Please enter a question or upload a file.")
     else:
-        if question.strip():
+
+        if getattr(st.session_state, "selected_question", "").strip():
+            input_text = st.session_state.selected_question
+        elif question.strip():
             input_text = question
         else:
             input_text = content
@@ -70,10 +82,22 @@ if st.button("Submit"):
         conversation_model.memory.add_message("bot", response)
 
         # Display the bot response (JSON format)
+        # if "response" in response:
+        #     st.success(f"**tinker**: {response['response']}")
+        #     if "questions" in response:
+        #         st.button(
+        #             f"**Think more**: {', '.join(response['questions'])}")
+        # else:
+        #     st.warning("Error: Could not generate a valid JSON response.")
+
         if "response" in response:
-            st.success(f"**tinker**: {response['response']}")
+            # cleaned_response = response['response'].replace('```', '')
+            st.success(
+                f"**tinker**: {response['response']}")
             if "questions" in response:
-                st.write(
-                    f"**Think more**: {', '.join(response['questions'])}")
+                st.write("***Tink more !!!!***")
+                for question in response['questions']:
+                    st.button(f"{question}")
+                    st.session_state.selected_question = question
         else:
             st.warning("Error: Could not generate a valid JSON response.")

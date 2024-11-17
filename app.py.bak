@@ -1,0 +1,127 @@
+import streamlit as st
+from typing import List
+import json
+from include import prepare_input, model
+
+# Function to handle file uploads and save locally
+
+
+def get_file_path(uploaded_file):
+    import os
+    cwd = os.getcwd()
+    temp_dir = os.path.join(cwd, "temp")
+    os.makedirs(temp_dir, exist_ok=True)
+    file_path = os.path.join(temp_dir, uploaded_file.name)
+    with open(file_path, "wb") as f:
+        f.write(uploaded_file.getbuffer())
+    return file_path
+
+# Simulated LLM response generator (replace with actual model logic)
+
+
+def generate_response(prompt: str, history: List[dict] = None) -> str:
+    return f"This is a simulated response to: '{prompt}'."
+
+# Simulated suggested questions generator (replace with actual model logic)
+
+
+def generate_suggested_questions(history: List[dict]) -> List[str]:
+    # Replace with logic to generate relevant suggestions based on chat history
+    return [
+        f"Follow-up question 1 based on '{history[-1]
+                                          ['content']}'" if history else "General question 1",
+        f"Follow-up question 2 based on '{history[-1]
+                                          ['content']}'" if history else "General question 2",
+        f"Follow-up question 3 based on '{history[-1]
+                                          ['content']}'" if history else "General question 3",
+    ]
+
+
+# Initialize session state
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
+if "suggested_questions" not in st.session_state:
+    st.session_state.suggested_questions = [
+        "What is the summary of the document?", "What are the key points?", "Explain the introduction in detail."]
+
+st.title("OverTinker")
+st.markdown("<div class='custom-markdown'><h1>Curiosity Meets Clarity</h1></div>",
+            unsafe_allow_html=True)
+
+# File uploader
+f = st.file_uploader("Upload a PDF", type=(["pdf"]))
+if f is not None:
+    path_in = get_file_path(f)
+    st.success("PDF uploaded successfully!")
+
+    document_content = prepare_input.read_from_pdf(path_in)
+    model.start_conversation_memory()
+    json_response = model.get_response(document_content)
+    decoded = json.loads(json_response)
+    # model.clear_conversation_memory()
+
+    # Update initial suggested questions after file upload
+    st.session_state.suggested_questions = decoded['questions']
+
+    # Generate and display bot response
+    st.session_state.messages.append(
+        {"role": "assistant", "content": decoded['response']})
+
+# Display chat history
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
+
+# Chat input
+if prompt := st.chat_input("Ask your question here..."):
+    # Add user message to chat history
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    with st.chat_message("user"):
+        st.markdown(prompt)
+
+    try:
+        # follow up response:
+        if model.conversation_init_done:
+            json_response = model.get_response(prompt)
+        else:
+            model.start_conversation_memory()
+            json_response = model.get_response(prompt)
+        print("JSON response: ", json_response)
+        decoded = json.loads(json_response)
+
+        # Generate and display bot response
+        with st.chat_message("assistant"):
+            st.markdown(decoded["response"])
+        st.session_state.messages.append(
+            {"role": "assistant", "content": decoded["response"]})
+
+        # Update suggested questions based on new chat history
+        st.session_state.suggested_questions = decoded["questions"]
+    except:
+        # Generate and display bot response
+        with st.chat_message("assistant"):
+            st.markdown("No Response")
+        st.session_state.messages.append(
+            {"role": "assistant", "content": "No Response"})
+
+
+# Suggested question buttons (persistent, they never disappear)
+st.subheader("Suggested Questions")
+cols = st.columns(3)
+for idx, question in enumerate(st.session_state.suggested_questions):
+    if cols[idx].button(question):
+        # Simulate submitting the suggested question as a prompt
+        st.session_state.messages.append({"role": "user", "content": question})
+        with st.chat_message("user"):
+            st.markdown(question)
+
+        with st.chat_message("assistant"):
+            response = generate_response(question, st.session_state.messages)
+            st.markdown(response)
+        st.session_state.messages.append(
+            {"role": "assistant", "content": response})
+
+        # Update suggestions again (the buttons remain persistent)
+        st.session_state.suggested_questions = generate_suggested_questions(
+            st.session_state.messages)

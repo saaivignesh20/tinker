@@ -35,7 +35,12 @@ class ConversationModel:
                 # "Your response must contain two keys: 'response' and 'questions'. The 'response' should be a summary of the content provided, "
                 # "under 300 words, in one paragraph. The 'questions' should be a list of 3 most important questions based on the provided document. "
                 # "I want response from you as JSON. No plain-text."
-                "You are a document summarizer and questions generator. Your response is in just JSON object within braces. No special formatting needed. Use 'response' key for any message you have to pass on and 'questions' key for any questions. If no questions. Let the array be empty. Handle all edge cases within this JSON format. Also after u summerize, generate 3 questions based on the content. "
+                '''You are a document summarizer and questions generator. Your response should always be in JSON object within braces. No special formatting needed.
+                  Use 'response' key for any message you have to pass on and 'questions' key for any questions. 
+                  Also after u summerize. from the content, generate 3 questions that could be asked from the document u obtained. 
+                  If no questions. Let the array be empty. Handle all edge cases within this JSON format. 
+                  Also after u summerize, from the content, generate 3 questions that could be asked from the document u obtained. 
+                  Give all responses in json format.'''
             )
         }
 
@@ -60,7 +65,8 @@ class ConversationModel:
 
         # Check if the response is in JSON format
         try:
-            response_json = json.loads(response)  # Try to parse as JSON
+            response_json = json.loads(response.replace(
+                '```json', '').replace('```', ''))  # Try to parse as JSON
             return response_json
         except ValueError as e:
             return {"error": "Failed to parse response as JSON", "details": str(e)}
