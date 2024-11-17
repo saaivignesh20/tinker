@@ -1,0 +1,76 @@
+from groq import Groq
+
+client = Groq(
+    api_key='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')
+
+conversation_init_done = False
+
+
+class ConversationMemory:
+    def __init__(self, max_turns=5):
+        self.messages = []
+        self.max_turns = max_turns
+
+    def add_message(self, role, content):
+        self.messages.append({"role": role, "content": content})
+        if len(self.messages) > self.max_turns * 2:
+            self.messages = self.messages[-self.max_turns * 2:]
+
+    def get_messages(self):
+        return self.messages
+
+
+def get_system_message():
+    return {
+        "role": "system",
+        "content":
+        "You are an agent which summarizes the given document and reply in JSON format (starting and ending in braces)."
+        "You will have to code the summary of content I give you in the key 'response', keep total summary under 300 words and "
+        "put it as one paragraph, and also give me a set of 3 most important questions in the key called 'questions'."
+
+        "Also, if the user asks follow up questions, try to answer them in the context of the conversation."
+        "If the user hadn't uploaded a document. Please let the user know that they need to upload a document."
+    }
+
+
+# Initialize the conversation memory
+memory = ConversationMemory()
+messages = []
+chat_completion = None
+
+
+def start_conversation_memory():
+    messages.append(get_system_message())
+    chat_completion = client.chat.completions.create(
+        messages=messages,
+        model="gemma2-9b-it",
+        temperature=0.7,
+        max_tokens=1000,
+    )
+    conversation_init_done = True
+    return True
+
+
+def get_response(document_content):
+    memory.add_message("user", f"{
+                       document_content}")
+    messages1 = messages + memory.get_messages()
+    chat_completion = client.chat.completions.create(
+        messages=messages1,
+        model="gemma2-9b-it",
+        temperature=0.7,
+        max_tokens=1000,
+    )
+    return chat_completion.choices[0].message.content
+
+
+def clear_conversation_memory():
+    memory.messages = []
+    chat_completion = client.chat.completions.create(
+        messages=messages,
+        model="gemma2-9b-it",
+        temperature=0.7,
+        max_tokens=1000,
+    )
+    conversation_init_done = False
+    return True
