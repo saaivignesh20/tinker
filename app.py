@@ -1,4 +1,88 @@
-# streamlit entry point
 import streamlit as st
+from typing import List
+import random
+import time
 
-`st.write("Hello all")
+# Function to handle file uploads and save locally
+def get_file_path(uploaded_file):
+    import os
+    cwd = os.getcwd()
+    temp_dir = os.path.join(cwd, "temp")
+    os.makedirs(temp_dir, exist_ok=True)
+    file_path = os.path.join(temp_dir, uploaded_file.name)
+    with open(file_path, "wb") as f:
+        f.write(uploaded_file.getbuffer())
+    return file_path
+
+# Simulated LLM response generator (replace with actual model logic)
+def generate_response(prompt: str, history: List[dict] = None) -> str:
+    return f"This is a simulated response to: '{prompt}'."
+
+# Simulated suggested questions generator (replace with actual model logic)
+def generate_suggested_questions(history: List[dict]) -> List[str]:
+    # Replace with logic to generate relevant suggestions based on chat history
+    return [
+        f"Follow-up question 1 based on '{history[-1]['content']}'" if history else "General question 1",
+        f"Follow-up question 2 based on '{history[-1]['content']}'" if history else "General question 2",
+        f"Follow-up question 3 based on '{history[-1]['content']}'" if history else "General question 3",
+    ]
+
+# Initialize session state
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
+if "suggested_questions" not in st.session_state:
+    st.session_state.suggested_questions = ["What is the summary of the document?", "What are the key points?", "Explain the introduction in detail."]
+
+st.title("LangChain PDF Chatbot")
+
+# File uploader
+f = st.file_uploader("Upload a PDF", type=(["pdf"]))
+if f is not None:
+    path_in = get_file_path(f)
+    st.success("PDF uploaded successfully!")
+    # Update initial suggested questions after file upload
+    st.session_state.suggested_questions = [
+        "What is the document about?",
+        "Can you summarize the key points?",
+        "What is the tone of the document?",
+    ]
+
+# Display chat history
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
+
+# Chat input
+if prompt := st.chat_input("Ask your question here..."):
+    # Add user message to chat history
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    with st.chat_message("user"):
+        st.markdown(prompt)
+
+    # Generate and display bot response
+    with st.chat_message("assistant"):
+        response = generate_response(prompt, st.session_state.messages)
+        st.markdown(response)
+    st.session_state.messages.append({"role": "assistant", "content": response})
+
+    # Update suggested questions based on new chat history
+    st.session_state.suggested_questions = generate_suggested_questions(st.session_state.messages)
+
+# Suggested question buttons
+st.subheader("Suggested Questions")
+cols = st.columns(3)
+for idx, question in enumerate(st.session_state.suggested_questions):
+    if cols[idx].button(question):
+        # Simulate submitting the suggested question as a prompt
+        st.session_state.messages.append({"role": "user", "content": question})
+        with st.chat_message("user"):
+            st.markdown(question)
+
+        with st.chat_message("assistant"):
+            response = generate_response(question, st.session_state.messages)
+            st.markdown(response)
+        st.session_state.messages.append({"role": "assistant", "content": response})
+
+        # Update suggestions again
+        st.session_state.suggested_questions = generate_suggested_questions(st.session_state.messages)
