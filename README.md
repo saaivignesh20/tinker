@@ -1,5 +1,7 @@
 # Tinker - Smart Document Summarization
 
+> 🏆 Winner of 2nd Runner Up Award in Luddy Hackathon 2024
+
 ## Overview
 
 Tinker is a powerful document summarization and Q&A platform that leverages Groq's lightning-fast inference API and Google's Gemma 2 language model. Built during a hackathon, this tool helps you quickly extract key insights from documents and interact with their content through natural language queries.
